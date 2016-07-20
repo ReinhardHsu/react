@@ -14,6 +14,12 @@ const bankActionCreators={
 			amount:amount,
 		};
 	},
+
+	toggleInfo(){
+		return{
+			type:constants.TOGGLE_INFO
+		};
+	}
 };
 
 export default bankActionCreators;

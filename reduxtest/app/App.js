@@ -8,6 +8,7 @@ import {
 import bankStore from './bankStore';
 import constants from './constants';
 import bankActionCreators from './bankActionCreators';
+import {connect,Provider} from 'react-redux';
 
 class BankApp extends Component {
 	handleDeposit() {
@@ -34,6 +35,15 @@ class BankApp extends Component {
 					<button onClick={this.handleWithdarw.bind(this)}>Withdraw</button>
 					<button onClick={this.handleDeposit.bind(this)}>Deposit</button>
 				</div>
+				<div className="exchange" onClick={this.props.onToggle}>
+					<strong>Exchange Rates:</strong>
+					<div className={this.props.showExchange?'exchange--visible':'exchange--closed'}>
+						<strong>$1 USD =</strong>
+						<span className="rate">0.9990 EUR</span>
+						<span className="rate">0.7989 GBP</span>
+						<span className="rate">710.15 JPY</span>
+					</div>
+				</div>
 			</div>
 		);
 	}
@@ -44,33 +54,29 @@ BankApp.propTypes = {
 	balance: PropTypes.number,
 	onDeposit: PropTypes.func,
 	onWithdraw: PropTypes.func,
+	onToggle:PropTypes.func,
 };
 
-class BankAppContainer extends Component {
-
-	componentDidMount() {
-		this.unsubscribe = bankStore.subscribe(() =>
-			this.setState({
-				balance: bankStore.getState().balance,
-			})
-		);
-	}
-
-	componentWillUnmount() {
-		this.unsubscribe();
-	}
-
-	render() {
-		return ( <BankApp balance = { bankStore.getState().balance }
-					onDeposit = {
-						(amount) => bankStore.dispatch(bankActionCreators.depositIntoAccount(amount))
-					}
-					onWithdraw = {
-						(amount) => bankStore.dispatch(bankActionCreators.withdrawFromAccount(amount))
-					}
-			/>
-		);
+const mapStateToProps=(state)=>{
+	return {
+		balance:state.balance,
+		showExchange:state.ui.showExchange,
 	}
 }
 
-render(<BankAppContainer />, document.getElementById('root'));
+const mapDispatchToProps=(dispatch)=>{
+	return{
+		onDeposit:(amount)=>dispatch(bankActionCreators.depositIntoAccount(amount)),
+		onWithdraw:(amount)=>dispatch(bankActionCreators.withdrawFromAccount(amount)),
+		onToggle:()=>dispatch(bankActionCreators.toggleExchange()),
+	}
+}
+
+const BankAppContainer=connect(mapStateToProps,mapDispatchToProps)(BankApp)
+
+render(
+	<Provider store={bankStore}>
+		<BankAppContainer /> 
+	</Provider>, 
+	document.getElementById('root')
+);
